@@ -1,0 +1,13 @@
+{
+    "name": "echtermax/contao-partys-bundle",
+    "type": "contao-bundle",
+    "require": {
+        "contao/core-bundle": "^5.0"
+    },
+    "license": "GPL-3.0",
+    "autoload": {
+        "psr-4": {
+            "Echtermax\\ContaoPartysBundle\\": "src/"
+        }
+    }
+}
