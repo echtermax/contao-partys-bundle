@@ -10,10 +10,10 @@ declare(strict_types=1);
  * @license LGPL-3.0-or-later
  */
 
-namespace Contao\SkeletonBundle;
+namespace Echtermax\PartyBundle;
 
-use Symfony\Component\HttpKernel\Bundle\Bundle;
+use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
 
-class ContaoSkeletonBundle extends Bundle
+class ContaoPartyBundle extends AbstractBundle
 {
 }
