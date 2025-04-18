@@ -1,3 +1,14 @@
 services:
     _defaults:
         autoconfigure: true
+        autowire: true
+        public: false
+
+    Echtermax\PartyBundle\:
+        resource: '../../*'
+        exclude: '../../{Entity,Model,Resources,Tests}'
+
+    Echtermax\PartyBundle\Controller\:
+        resource: '../../Controller'
+        public: true
+        tags: ['controller.service_arguments']

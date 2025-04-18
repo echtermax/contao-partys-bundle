@@ -3,17 +3,17 @@
 declare(strict_types=1);
 
 /*
- * This file is part of [package name].
+ * This file is part of Contao Party Bundle.
  *
- * (c) John Doe
+ * (c) Max Pawellek
  *
  * @license LGPL-3.0-or-later
  */
 
 namespace Echtermax\PartyBundle;
 
-use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
+use Symfony\Component\HttpKernel\Bundle\Bundle;
 
-class ContaoPartyBundle extends AbstractBundle
+class ContaoPartyBundle extends Bundle
 {
 }
