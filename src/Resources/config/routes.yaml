@@ -1,0 +1,3 @@
+party_controller:
+    resource: ../../Controller/PartyController.php
+    type: annotation

@@ -1,14 +1,14 @@
 services:
     _defaults:
-        autoconfigure: true
         autowire: true
+        autoconfigure: true
         public: false
-
+    
     Echtermax\PartyBundle\:
-        resource: '../../*'
-        exclude: '../../{Entity,Model,Resources,Tests}'
-
-    Echtermax\PartyBundle\Controller\:
-        resource: '../../Controller'
+        resource: '../../'
+        exclude: '../../{Entity,Resources,Tests}'
+    
+    Echtermax\PartyBundle\EventListener\DataContainer\PartyCallbackListener:
         public: true
-        tags: ['controller.service_arguments']
+        arguments:
+            - '@contao.framework'

@@ -8,6 +8,11 @@
  * @license LGPL-3.0-or-later
  */
 
+// Frontend Module
+$GLOBALS['FE_MOD']['echtermax'] = [
+    'partylist' => 'Echtermax\PartyBundle\Module\PartyListModule',
+];
+
 // Backend-Module
 $GLOBALS['BE_MOD']['content']['party'] = [
     'tables' => ['tl_party'],

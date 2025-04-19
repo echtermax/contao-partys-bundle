@@ -1,0 +1,38 @@
+{# src/Resources/views/party_list.html.twig #}
+
+{% if parties|length > 0 %}
+    <div class="party-list">
+        {% for party in parties %}
+            <div class="party-item">
+                <h3 class="party-title">{{ party.title }}</h3>
+                
+                <div class="party-details">
+                    {% if party.formattedDate %}
+                        <div class="party-date">
+                            <span class="date-label">Datum:</span> {{ party.formattedDate }}
+                            {% if party.formattedTime %}
+                                <span class="time-label">Uhrzeit:</span> {{ party.formattedTime }}
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                    
+                    {% if party.location %}
+                        <div class="party-location">
+                            <span class="location-label">Ort:</span> {{ party.location }}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                {% if party.description %}
+                    <div class="party-description">
+                        {{ party.description|raw }}
+                    </div>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="empty-message">
+        <p>Derzeit sind keine Veranstaltungen geplant.</p>
+    </div>
+{% endif %}

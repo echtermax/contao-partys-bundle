@@ -56,6 +56,19 @@ class PartyModel extends Model
 
         return static::findBy($arrColumns, null, $arrOptions);
     }
+    
+    /**
+     * Findet alle veröffentlichten Partys, sortiert nach Datum
+     *
+     * @return \Contao\Model\Collection|null
+     */
+    public static function findPublishedParties()
+    {
+        $t = static::$strTable;
+        $arrColumns = ["$t.published='1'"];
+        
+        return static::findBy($arrColumns, null, ['order' => "$t.date DESC"]);
+    }
 
     /**
      * Findet alle veröffentlichten Party-Einträge
