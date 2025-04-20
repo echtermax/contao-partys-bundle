@@ -1,38 +1,47 @@
 {# src/Resources/views/party_list.html.twig #}
 
 {% if parties|length > 0 %}
-    <div class="party-list">
-        {% for party in parties %}
-            <div class="party-item">
-                <h3 class="party-title">{{ party.title }}</h3>
-                
-                <div class="party-details">
-                    {% if party.formattedDate %}
-                        <div class="party-date">
-                            <span class="date-label">Datum:</span> {{ party.formattedDate }}
-                            {% if party.formattedTime %}
-                                <span class="time-label">Uhrzeit:</span> {{ party.formattedTime }}
-                            {% endif %}
-                        </div>
+  <div class="container my-4">
+    <div class="row row-cols-1 g-4">
+      {% for party in parties %}
+        <div class="col">
+          <div class="card shadow-sm">
+            <div class="card-body">
+              <h5 class="card-title">{{ party.title }}</h5>
+              
+              <div class="mb-3">
+                {% if party.formattedDate %}
+                  <p class="mb-1">
+                    <strong>Datum:</strong> {{ party.formattedDate }}
+                    {% if party.formattedTime %}
+                      <br>
+                      <strong>Uhrzeit:</strong> {{ party.formattedTime }}
                     {% endif %}
-                    
-                    {% if party.location %}
-                        <div class="party-location">
-                            <span class="location-label">Ort:</span> {{ party.location }}
-                        </div>
-                    {% endif %}
-                </div>
-                
-                {% if party.description %}
-                    <div class="party-description">
-                        {{ party.description|raw }}
-                    </div>
+                  </p>
                 {% endif %}
+                
+                {% if party.location %}
+                  <p class="mb-1">
+                    <strong>Ort:</strong> {{ party.location }}
+                  </p>
+                {% endif %}
+              </div>
+              
+              {% if party.description %}
+                <div class="card-text">
+                  {{ party.description|raw }}
+                </div>
+              {% endif %}
             </div>
-        {% endfor %}
+          </div>
+        </div>
+      {% endfor %}
     </div>
+  </div>
 {% else %}
-    <div class="empty-message">
-        <p>Derzeit sind keine Veranstaltungen geplant.</p>
+  <div class="container my-5">
+    <div class="alert alert-info text-center" role="alert">
+      Derzeit sind keine Veranstaltungen geplant.
     </div>
+  </div>
 {% endif %}
