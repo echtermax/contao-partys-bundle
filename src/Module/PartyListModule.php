@@ -54,35 +54,31 @@ class PartyListModule extends Module
     protected function compile()
     {
         $parties = PartyModel::findPublishedParties();
-        
-        if (null === $parties) {
-            $this->Template->parties = [];
-            return;
-        }
-        
         $arrParties = [];
         
-        // Vorbereiten der Party-Daten für die Twig-Vorlage
-        foreach ($parties as $party) {
-            $arrParty = $party->row();
-            
-            // Datumsformatierung
-            if ($arrParty['date']) {
-                $arrParty['formattedDate'] = Date::parse('d.m.Y', $arrParty['date']);
-                $arrParty['formattedTime'] = Date::parse('H:i', $arrParty['date']);
+        if (null !== $parties) {
+            // Vorbereiten der Party-Daten für die Twig-Vorlage
+            foreach ($parties as $party) {
+                $arrParty = $party->row();
+                
+                // Datumsformatierung
+                if ($arrParty['date']) {
+                    $arrParty['formattedDate'] = Date::parse('d.m.Y', $arrParty['date']);
+                    $arrParty['formattedTime'] = Date::parse('H:i', $arrParty['date']);
+                }
+                
+                // Beschreibung mit HTML-Elementen verarbeiten
+                if ($arrParty['description']) {
+                    // In Contao wird RichText-Inhalt automatisch als HTML gespeichert
+                    // Wir müssen daher keine spezielle Konvertierung durchführen
+                    $arrParty['description'] = $arrParty['description'];
+                }
+                
+                $arrParties[] = $arrParty;
             }
-            
-            // Beschreibung mit HTML-Elementen verarbeiten
-            if ($arrParty['description']) {
-                // In Contao wird RichText-Inhalt automatisch als HTML gespeichert
-                // Wir müssen daher keine spezielle Konvertierung durchführen
-                $arrParty['description'] = $arrParty['description'];
-            }
-            
-            $arrParties[] = $arrParty;
         }
         
-        // Übergeben der Daten an das Twig-Template
+        // Übergeben der Daten an das Twig-Template, auch wenn die Liste leer ist
         $twig = System::getContainer()->get('twig');
         $this->Template->parties = $twig->render('@ContaoParty/party_list.html.twig', [
             'parties' => $arrParties
