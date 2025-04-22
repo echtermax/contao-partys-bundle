@@ -66,7 +66,7 @@ $GLOBALS['TL_DCA']['tl_party'] = [
 
     // Palettes
     'palettes' => [
-        'default'                     => '{title_legend},title,description;{date_legend},date,location;{publish_legend},published'
+        'default'                     => '{title_legend},title,description;{date_legend},date,location;{invitation_legend},inviteOnly,invitedUsers;{publish_legend},published'
     ],
 
     // Fields
@@ -116,6 +116,21 @@ $GLOBALS['TL_DCA']['tl_party'] = [
             'inputType'               => 'checkbox',
             'eval'                    => ['doNotCopy'=>true],
             'sql'                     => "char(1) NOT NULL default ''"
+        ],
+        'inviteOnly' => [
+            'exclude'                 => true,
+            'filter'                  => true,
+            'inputType'               => 'checkbox',
+            'eval'                    => ['submitOnChange'=>true, 'tl_class'=>'w50 clr'],
+            'sql'                     => "char(1) NOT NULL default ''"
+        ],
+        'invitedUsers' => [
+            'exclude'                 => true,
+            'inputType'               => 'checkbox',
+            'foreignKey'              => 'tl_member.firstname',
+            'eval'                    => ['multiple'=>true, 'tl_class'=>'clr'],
+            'sql'                     => "blob NULL",
+            'relation'                => ['type'=>'hasMany', 'load'=>'lazy']
         ]
     ]
 ];

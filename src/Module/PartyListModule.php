@@ -53,32 +53,31 @@ class PartyListModule extends Module
      */
     protected function compile()
     {
-        $parties = PartyModel::findPublishedParties();
+        $memberId = 0;
+        $user = \Contao\FrontendUser::getInstance();
+        if ($user && $user->id) {
+            $memberId = (int)$user->id;
+        }
+
+        $parties = PartyModel::findPublishedPartiesForMember($memberId);
         $arrParties = [];
         
         if (null !== $parties) {
-            // Vorbereiten der Party-Daten für die Twig-Vorlage
             foreach ($parties as $party) {
                 $arrParty = $party->row();
                 
-                // Datumsformatierung
                 if ($arrParty['date']) {
                     $arrParty['formattedDate'] = Date::parse('d.m.Y', $arrParty['date']);
                     $arrParty['formattedTime'] = Date::parse('H:i', $arrParty['date']);
+                } else {
+                    $arrParty['formattedDate'] = '?';
+                    $arrParty['formattedTime'] = '?';
                 }
-                
-                // Beschreibung mit HTML-Elementen verarbeiten
-                if ($arrParty['description']) {
-                    // In Contao wird RichText-Inhalt automatisch als HTML gespeichert
-                    // Wir müssen daher keine spezielle Konvertierung durchführen
-                    $arrParty['description'] = $arrParty['description'];
-                }
-                
+
                 $arrParties[] = $arrParty;
             }
         }
         
-        // Übergeben der Daten an das Twig-Template, auch wenn die Liste leer ist
         $twig = System::getContainer()->get('twig');
         $this->Template->parties = $twig->render('@ContaoParty/party_list.html.twig', [
             'parties' => $arrParties

@@ -44,7 +44,18 @@ class PartyController extends AbstractController
     {
         $this->framework->initialize();
 
-        $parties = PartyModel::findPublishedParties();
+        // Aktuelles Frontend-Mitglied abrufen
+        $memberId = 0;
+        $user = $this->getUser();
+        if ($user && $this->container->get('contao.security.token_checker')->hasFrontendUser()) {
+            $memberAdapter = $this->framework->getAdapter('Contao\MemberModel');
+            $member = $memberAdapter->findByUsername($user->getUsername());
+            if ($member) {
+                $memberId = (int)$member->id;
+            }
+        }
+    
+        $parties = PartyModel::findPublishedPartiesForMember($memberId);
         $arrParties = [];
 
         if ($parties !== null) {

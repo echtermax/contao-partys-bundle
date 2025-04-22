@@ -13,6 +13,7 @@ declare(strict_types=1);
 namespace Echtermax\PartyBundle\Model;
 
 use Contao\Model;
+use Contao\Model\Collection;
 
 /**
  * Liest und schreibt Partys
@@ -56,18 +57,44 @@ class PartyModel extends Model
 
         return static::findBy($arrColumns, null, $arrOptions);
     }
-    
+
     /**
-     * Findet alle veröffentlichten Partys, sortiert nach Datum
+     * Findet alle veröffentlichten Partys für einen Nutzer, sortiert nach Datum
      *
-     * @return \Contao\Model\Collection|null
+     * @param int $memberId
+     * @return Collection|null
      */
-    public static function findPublishedParties()
+    public static function findPublishedPartiesForMember(int $memberId): ?Model\Collection
     {
         $t = static::$strTable;
         $arrColumns = ["$t.published='1'"];
-        
-        return static::findBy($arrColumns, null, ['order' => "$t.date DESC"]);
+        $parties = static::findBy($arrColumns, null, ['order' => "$t.date DESC"]);
+
+        if (null === $parties) {
+            return null;
+        }
+
+        $filtered = [];
+        foreach ($parties as $party) {
+            if (!$party->inviteOnly) {
+                $filtered[] = $party;
+                continue;
+            }
+
+            $partyInvitesBlob = $party->invitedUsers;
+            if (!empty($partyInvitesBlob)) {
+                $invitedUsers = @unserialize($partyInvitesBlob);
+                if (is_array($invitedUsers) && in_array($memberId, $invitedUsers)) {
+                    $filtered[] = $party;
+                }
+            }
+        }
+
+        if (empty($filtered)) {
+            return null;
+        }
+
+        return new \Contao\Model\Collection($filtered, static::$strTable);
     }
 
     /**
