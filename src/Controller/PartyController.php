@@ -17,13 +17,13 @@ use Contao\Date;
 use Echtermax\PartyBundle\Model\PartyModel;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
 use Twig\Environment as TwigEnvironment;
 
 /**
  * Controller für die Frontend-Darstellung von Party-Einträgen
- *
- * @Route("/party", defaults={"_scope" = "frontend"})
  */
+#[Route('/party', defaults: ['_scope' => 'frontend'])]
 class PartyController extends AbstractController
 {
     private ContaoFramework $framework;
@@ -36,45 +36,59 @@ class PartyController extends AbstractController
     }
 
     /**
-     * Zeigt eine Liste aller veröffentlichten Partys an
-     *
-     * @Route("/list", name="party_list")
+     * @throws \Exception
      */
-    public function listAction(): Response
+    #[Route('/generate-ics/{id}', name: 'download_party_ics')]
+    public function downloadIcs(int $id): Response
     {
         $this->framework->initialize();
 
-        // Aktuelles Frontend-Mitglied abrufen
-        $memberId = 0;
-        $user = $this->getUser();
-        if ($user && $this->container->get('contao.security.token_checker')->hasFrontendUser()) {
-            $memberAdapter = $this->framework->getAdapter('Contao\MemberModel');
-            $member = $memberAdapter->findByUsername($user->getUsername());
-            if ($member) {
-                $memberId = (int)$member->id;
-            }
+        $partyModel = PartyModel::findById($id);
+
+        if (!$partyModel) {
+            throw $this->createNotFoundException('Party not found.');
         }
-    
-        $parties = PartyModel::findPublishedPartiesForMember($memberId);
-        $arrParties = [];
 
-        if ($parties !== null) {
-            // Formatieren der Party-Daten
-            foreach ($parties as $party) {
-                $partyData = $party->row();
+        $icsContent = $this->generateIcs($partyModel);
 
-                // Datumsformatierung hinzufügen
-                if ($partyData['date']) {
-                    $partyData['formattedDate'] = Date::parse('d.m.Y', $partyData['date']);
-                    $partyData['formattedTime'] = Date::parse('H:i', $partyData['date']);
-                }
-
-                $arrParties[] = $partyData;
-            }
-        }
-        
-        return $this->render('@ContaoParty/party_list.html.twig', [
-            'parties' => $arrParties
+        return new Response($icsContent, 200, [
+            'Content-Type' => 'text/calendar',
+            'Content-Disposition' => 'attachment; filename="party.ics"',
         ]);
+    }
+
+    /**
+     * @throws \Exception
+     */
+    private function generateIcs($party): string
+    {
+        dump($party);
+        if (!$party->date) return '';
+
+        $start = (new \DateTime())->setTimestamp((int) $party->date);
+        $end = (clone $start)->modify('+2 hours');
+
+        return <<<ICS
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Echtermax//PartyCalendar//DE
+BEGIN:VEVENT
+UID:party-{$party->id}-echtermax
+DTSTAMP:{$start->format('Ymd\THis\Z')}
+DTSTART:{$start->format('Ymd\THis')}
+DTEND:{$end->format('Ymd\THis')}
+SUMMARY:{$this->escapeIcsText($party->title)}
+LOCATION:{$this->escapeIcsText($party->location)}
+DESCRIPTION:{$this->escapeIcsText($party->description)}
+END:VEVENT
+END:VCALENDAR
+ICS;
+    }
+
+    private function escapeIcsText(string $text): string
+    {
+        $text = strip_tags($text);
+        $text = str_replace(["\\", ";", ",", "\n"], ["\\\\", "\;", "\,", "\\n"], $text);
+        return $text;
     }
 }

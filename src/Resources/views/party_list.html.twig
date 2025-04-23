@@ -33,6 +33,12 @@
                 </div>
               {% endif %}
             </div>
+            
+            {% if party.formattedDate %}
+              <a href="{{ path('download_party_ics', { id: party.id }) }}" target="_blank" class="btn btn-primary w-100 rounded-0 rounded-bottom">
+                <i class="bi bi-calendar-plus me-2"></i>
+              </a>
+            {% endif %}
           </div>
         </div>
       {% endfor %}
