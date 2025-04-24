@@ -34,7 +34,7 @@
               {% endif %}
             </div>
             
-            {% if party.formattedDate %}
+            {% if party.date > 0 %}
               <a href="{{ path('download_party_ics', { id: party.id }) }}" target="_blank" class="btn btn-primary w-100 rounded-0 rounded-bottom">
                 <i class="bi bi-calendar-plus me-2"></i>
               </a>

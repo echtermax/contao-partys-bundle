@@ -51,7 +51,7 @@ class PartyListModule extends Module
     /**
      * Generate the module
      */
-    protected function compile()
+    protected function compile(): void
     {
         $memberId = 0;
         $user = \Contao\FrontendUser::getInstance();

@@ -15,6 +15,7 @@ namespace Echtermax\PartyBundle\Controller;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\Date;
 use Echtermax\PartyBundle\Model\PartyModel;
+use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -36,7 +37,7 @@ class PartyController extends AbstractController
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     #[Route('/generate-ics/{id}', name: 'download_party_ics')]
     public function downloadIcs(int $id): Response
@@ -58,15 +59,12 @@ class PartyController extends AbstractController
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     private function generateIcs($party): string
     {
-        dump($party);
-        if (!$party->date) return '';
-
         $start = (new \DateTime())->setTimestamp((int) $party->date);
-        $end = (clone $start)->modify('+2 hours');
+        $end = (clone $start)->modify('+4 hours');
 
         return <<<ICS
 BEGIN:VCALENDAR
