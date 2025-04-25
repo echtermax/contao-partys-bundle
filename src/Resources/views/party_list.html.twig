@@ -51,14 +51,29 @@
                         
                         <div class="card-footer p-0">
                             <div class="d-flex">
-                                <button type="button" data-action="accept" data-party-id="{{ party.id }}" data-url="{{ path('accept_party_invite', { id: party.id }) }}" class="btn btn-success flex-fill rounded-0 party-action-btn" {% if party.userResponse is defined %}disabled{% endif %}>
-                                    <i class="bi bi-hand-thumbs-up"></i>
-                                </button>
-                                <button type="button" data-action="decline" data-party-id="{{ party.id }}" data-url="{{ path('decline_party_invite', { id: party.id }) }}" class="btn btn-danger flex-fill rounded-0 party-action-btn" {% if party.userResponse is defined %}disabled{% endif %}>
-                                    <i class="bi bi-hand-thumbs-down"></i>
-                                </button>
+                                {% if party.userResponse is not defined %}
+                                    <button type="button" title="Party zusagen" data-action="accept" data-party-id="{{ party.id }}" data-url="{{ path('accept_party_invite', { id: party.id }) }}" class="btn btn-success flex-fill rounded-0 party-action-btn">
+                                        <i class="bi bi-hand-thumbs-up"></i>
+                                    </button>
+                                    <button type="button" title="Party absagen" data-action="decline" data-party-id="{{ party.id }}" data-url="{{ path('decline_party_invite', { id: party.id }) }}" class="btn btn-danger flex-fill rounded-0 party-action-btn">
+                                        <i class="bi bi-hand-thumbs-down"></i>
+                                    </button>
+                                    
+                                {% elseif party.userResponse == 'accept' %}
+                                    <button type="button" title="Party absagen" data-action="decline" data-party-id="{{ party.id }}" data-url="{{ path('decline_party_invite', { id: party.id }) }}" class="btn btn-outline-danger flex-fill rounded-0 party-action-btn">
+                                        <i class="bi bi-arrow-repeat me-1"></i>
+                                        <i class="bi bi-hand-thumbs-down"></i>
+                                    </button>
+                                    
+                                {% elseif party.userResponse == 'decline' %}
+                                    <button type="button" title="Party zusagen" data-action="accept" data-party-id="{{ party.id }}" data-url="{{ path('accept_party_invite', { id: party.id }) }}" class="btn btn-outline-success flex-fill rounded-0 party-action-btn">
+                                        <i class="bi bi-arrow-repeat me-1"></i>
+                                        <i class="bi bi-hand-thumbs-up"></i>
+                                    </button>
+                                {% endif %}
+                                
                                 {% if party.date > 0 %}
-                                    <a href="{{ path('download_party_ics', { id: party.id }) }}" target="_blank" class="btn btn-primary flex-fill rounded-0">
+                                    <a href="{{ path('download_party_ics', { id: party.id }) }}" target="_blank" title="Zu Kalender hinzufügen" class="btn btn-primary flex-fill rounded-0">
                                         <i class="bi bi-calendar-plus me-2"></i>
                                     </a>
                                 {% endif %}
@@ -103,6 +118,9 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+        const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+        
         const partyButtons = document.querySelectorAll('.party-action-btn');
         
         partyButtons.forEach(button => {
@@ -142,7 +160,8 @@
                         
                         setTimeout(() => {
                             feedbackDiv.remove();
-                        }, 3000);
+                            location.reload();
+                        }, 2000);
                     } else {
                         alert(data.message || 'Es ist ein Fehler aufgetreten.');
                     }
