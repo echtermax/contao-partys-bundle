@@ -17,6 +17,7 @@ use Contao\Date;
 use Contao\Module;
 use Contao\System;
 use Echtermax\PartyBundle\Model\PartyModel;
+use Echtermax\PartyBundle\Model\PartyResponseModel;
 use Symfony\Component\HttpFoundation\Request;
 
 class PartyListModule extends Module
@@ -73,6 +74,9 @@ class PartyListModule extends Module
                     $arrParty['formattedDate'] = '?';
                     $arrParty['formattedTime'] = '?';
                 }
+
+                $userResponse = PartyResponseModel::findByPartyAndMember($arrParty['id'], $memberId);
+                if ($userResponse) $arrParty['userResponse'] = $userResponse->row()['response'];
 
                 $arrParties[] = $arrParty;
             }
