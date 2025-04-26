@@ -11,8 +11,8 @@
     ],
     "homepage": "https://maxpawellek.de",
     "support": {
-        "issues": "https://github.com/echtermax/contao-party-bundle/issues",
-        "source": "https://github.com/echtermax/contao-party-bundle"
+        "issues": "https://github.com/echtermax/contao-partys-bundle/issues",
+        "source": "https://github.com/echtermax/contao-partys-bundle"
     },
     "require": {
         "php": "^8.0",
