@@ -223,12 +223,8 @@ class PartyController extends AbstractController
      */
     private function generateIcs($party): string
     {
-        $startLocal = (new \DateTime())->setTimestamp((int)$party->date);
-        $endLocal   = (clone $startLocal)->modify('+4 hours');
-
-        $utc = new \DateTimeZone('UTC');
-        $startUtc = (clone $startLocal)->setTimezone($utc);
-        $endUtc   = (clone $endLocal)->setTimezone($utc);
+        $start = (new \DateTime())->setTimestamp((int)$party->date);
+        $end   = (clone $start)->modify('+4 hours');
 
         $user = FrontendUser::getInstance();
         $userName = $user->firstname;
@@ -244,9 +240,9 @@ METHOD:REQUEST
 PRODID:-//Echtermax//PartyCalendar//DE
 BEGIN:VEVENT
 UID:party-{$party->id}-echtermax
-DTSTAMP:{$startUtc->format('Ymd\THis\Z')}
-DTSTART:{$startUtc->format('Ymd\THis\Z')}
-DTEND:{$endUtc->format('Ymd\THis\Z')}
+DTSTAMP:{$start->format('Ymd\THis')}
+DTSTART:{$start->format('Ymd\THis')}
+DTEND:{$end->format('Ymd\THis')}
 SUMMARY:{$this->escapeIcsText($party->title)}
 LOCATION:{$this->escapeIcsText($party->location)}
 DESCRIPTION:{$description}
