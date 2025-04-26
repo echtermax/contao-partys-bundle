@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace Echtermax\PartyBundle\Controller;
 
+use Contao\Config;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\FrontendUser;
 use Contao\Environment;
@@ -33,11 +34,16 @@ class PartyController extends AbstractController
 {
     private ContaoFramework $framework;
     private TwigEnvironment $twig;
+    private string $adminEmail;
 
     public function __construct(ContaoFramework $framework, TwigEnvironment $twig)
     {
         $this->framework = $framework;
+        $this->framework->initialize();
         $this->twig = $twig;
+        $this->adminEmail = $this->framework
+            ->getAdapter(Config::class)
+            ->get('adminEmail');
     }
     
     /**
@@ -55,8 +61,6 @@ class PartyController extends AbstractController
     #[Route('/generate-ics/{id}', name: 'download_party_ics')]
     public function downloadIcs(int $id): Response
     {
-        $this->framework->initialize();
-
         $partyModel = PartyModel::findById($id);
 
         if (!$partyModel) {
@@ -67,15 +71,13 @@ class PartyController extends AbstractController
 
         return new Response($icsContent, 200, [
             'Content-Type' => 'text/calendar',
-            'Content-Disposition' => 'attachment; filename="party.ics"',
+            'Content-Disposition' => 'inline; filename="party.ics"',
         ]);
     }
 
     #[Route('/accept-invite/{id}', name: 'accept_party_invite')]
     public function acceptInvite(int $id): Response
     {
-        $this->framework->initialize();
-
         if (!Environment::get('isAjaxRequest')) return $this->redirectToRoute('party_list');
 
         $partyModel = PartyModel::findById($id);
@@ -111,8 +113,6 @@ class PartyController extends AbstractController
     #[Route('/decline-invite/{id}', name: 'decline_party_invite')]
     public function declineInvite(int $id): Response
     {
-        $this->framework->initialize();
-
         if (!Environment::get('isAjaxRequest')) return $this->redirectToRoute('party_list');
 
         $partyModel = PartyModel::findById($id);
@@ -148,8 +148,6 @@ class PartyController extends AbstractController
     #[Route('/attendees/{id}', name: 'party_attendees')]
     public function getPartyAttendees(int $id): Response
     {
-        $this->framework->initialize();
-
         if (!Environment::get('isAjaxRequest')) return $this->redirectToRoute('party_list');
 
         $user = FrontendUser::getInstance();
@@ -225,21 +223,35 @@ class PartyController extends AbstractController
      */
     private function generateIcs($party): string
     {
-        $start = (new \DateTime())->setTimestamp((int) $party->date);
-        $end = (clone $start)->modify('+4 hours');
+        $startLocal = (new \DateTime())->setTimestamp((int)$party->date);
+        $endLocal   = (clone $startLocal)->modify('+4 hours');
+
+        $utc = new \DateTimeZone('UTC');
+        $startUtc = (clone $startLocal)->setTimezone($utc);
+        $endUtc   = (clone $endLocal)->setTimezone($utc);
+
+        $user = FrontendUser::getInstance();
+        $userName = $user->firstname;
+        $userEmail = $user->email;
+
+        $description = $party->description ? $this->escapeIcsText($party->description) : '';
 
         return <<<ICS
 BEGIN:VCALENDAR
 VERSION:2.0
+CALSCALE:GREGORIAN
+METHOD:REQUEST
 PRODID:-//Echtermax//PartyCalendar//DE
 BEGIN:VEVENT
 UID:party-{$party->id}-echtermax
-DTSTAMP:{$start->format('Ymd\THis\Z')}
-DTSTART:{$start->format('Ymd\THis')}
-DTEND:{$end->format('Ymd\THis')}
+DTSTAMP:{$startUtc->format('Ymd\THis\Z')}
+DTSTART:{$startUtc->format('Ymd\THis\Z')}
+DTEND:{$endUtc->format('Ymd\THis\Z')}
 SUMMARY:{$this->escapeIcsText($party->title)}
 LOCATION:{$this->escapeIcsText($party->location)}
-DESCRIPTION:{$this->escapeIcsText($party->description)}
+DESCRIPTION:{$description}
+ORGANIZER:mailto:{$this->adminEmail}
+ATTENDEE;CN={$this->escapeIcsText($userName)};ROLE=REQ-PARTICIPANT:mailto:{$userEmail}
 END:VEVENT
 END:VCALENDAR
 ICS;
