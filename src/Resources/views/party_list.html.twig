@@ -2,9 +2,10 @@
 
 {% if parties|length > 0 %}
     <div class="container my-4">
+        <div id="customAlert" class="alert alert-info text-center" style="display: none" role="alert"></div>
         <div class="row row-cols-1 g-4">
             {% for party in parties %}
-                <div class="col">
+                <div class="col party-item" data-response="{{ party.userResponse|default('pending') }}">
                     <div class="card shadow-sm">
                         <div class="card-body position-relative">
                             <button type="button" class="btn btn-sm btn-outline-secondary position-absolute top-0 end-0 mt-2 me-2 group-icon" 
@@ -106,6 +107,40 @@
                     </div>
                 </div>
             {% endfor %}
+            <button type="button" class="btn btn-info rounded-circle position-fixed bottom-0 end-0 m-4 z-3 d-flex justify-content-center align-items-center p-0" style="width:64px; height:64px;" data-bs-toggle="modal" data-bs-target="#filterModal">
+                <i id="filterIcon" class="bi bi-funnel fs-3"></i>
+            </button>
+            
+            <div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header bg-info text-white border-0">
+                            <h5 class="modal-title flex-grow-1 text-center fw-bold" id="filterModalLabel">
+                                Filter anzeigen
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Schließen"></button>
+                        </div>
+                        <div class="modal-body py-4">
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input filter-option" type="checkbox" value="pending" id="filterPending">
+                                <label class="form-check-label" for="filterPending">Nicht geantwortet</label>
+                            </div>
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input filter-option" type="checkbox" value="accept" id="filterAccepted">
+                                <label class="form-check-label" for="filterAccepted">Zugesagt</label>
+                            </div>
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input filter-option" type="checkbox" value="decline" id="filterDeclined">
+                                <label class="form-check-label" for="filterDeclined">Abgesagt</label>
+                            </div>
+                        </div>
+                        <div class="modal-footer justify-content-between border-0">
+                            <button type="button" class="btn btn-outline-secondary" id="resetFilters">Zurücksetzen</button>
+                            <button type="button" class="btn btn-info" id="applyFilters" data-bs-dismiss="modal">Anwenden</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 {% else %}
@@ -238,5 +273,38 @@
                 });
             });
         });
+        
+        function applyFilters() {
+            const checked = Array.from(document.querySelectorAll('.filter-option:checked')).map(cb => cb.value);
+            const filterIcon = document.getElementById('filterIcon');
+            const alert = document.getElementById('customAlert');
+            let displayCounter = 0;
+            document.querySelectorAll('.party-item').forEach(item => {
+                const status = item.getAttribute('data-response');
+                item.style.display = (checked.includes(status) || checked.length === 0) ? '' : 'none';
+                if (item.style.display !== 'none') displayCounter++;
+            });
+            if (checked.length === 0 || checked.length === Array.from(document.querySelectorAll('.filter-option')).map(cb => cb.value).length) {
+                if (filterIcon.classList.contains('bi-funnel-fill')) filterIcon.classList.replace('bi-funnel-fill', 'bi-funnel')
+            } else {
+                if (filterIcon.classList.contains('bi-funnel')) filterIcon.classList.replace('bi-funnel', 'bi-funnel-fill')
+            }
+            console.log(displayCounter)
+            if (displayCounter === 0) {
+                alert.style.display = 'block';
+                alert.innerText = "Es wurden keine Partys gefunden, die den Filterkriterien entsprechen.";
+            } else {
+                alert.style.display = 'none';
+                alert.innerText = "";
+            }
+        }
+        
+        function resetFilters() {
+            document.querySelectorAll('.filter-option').forEach(cb => cb.checked = false);
+            applyFilters();
+        }
+        
+        document.getElementById('applyFilters').addEventListener('click', applyFilters);
+        document.getElementById('resetFilters').addEventListener('click', resetFilters);
     });
 </script>
