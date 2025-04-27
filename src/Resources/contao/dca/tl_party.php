@@ -24,13 +24,13 @@ $GLOBALS['TL_DCA']['tl_party'] = [
     'list' => [
         'sorting' => [
             'mode'                    => 1,
-            'fields'                  => ['title'],
+            'fields'                  => ['date ASC'],
             'flag'                    => 1,
             'panelLayout'             => 'filter;search,limit'
         ],
         'label' => [
-            'fields'                  => ['title', 'date', 'location'],
-            'format'                  => '%s | %s | %s'
+            'fields'                  => ['date', 'title'],
+            'format'                  => '%s | %s'
         ],
         'global_operations' => [
             'all' => [
@@ -110,6 +110,7 @@ $GLOBALS['TL_DCA']['tl_party'] = [
             'sql'                     => "varchar(255) NOT NULL default ''"
         ],
         'published' => [
+            'toggle'                  => true,
             'exclude'                 => true,
             'filter'                  => true,
             'flag'                    => 1,
