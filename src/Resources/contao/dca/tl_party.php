@@ -23,14 +23,26 @@ $GLOBALS['TL_DCA']['tl_party'] = [
     // List
     'list' => [
         'sorting' => [
-            'mode'                    => 1,
-            'fields'                  => ['date ASC'],
-            'flag'                    => 1,
-            'panelLayout'             => 'filter;search,limit'
+            'mode'                    => 2,
+            'fields'                  => ['startDate'],
+            'flag'                    => 6,
+            'panelLayout'             => 'filter;search,limit',
+            'sorting' => [
+                'mode'            => 1,
+                'fields'          => ['startDate'],
+                'flag'            => 1,
+                'panelLayout'     => 'filter;search,limit',
+            ],
         ],
         'label' => [
-            'fields'                  => ['date', 'title'],
-            'format'                  => '%s | %s'
+            'fields'                  => ['startDate', 'title'],
+            'label_callback'          => function(array $row) {
+                $date = $row['startDate'] ? \Contao\Date::parse('d.m.Y', $row['startDate']) : '-';
+                $time = $row['startTime'] ? \Contao\Date::parse('H:i', $row['startTime']) : '';
+                $title = $row['title'];
+
+                return sprintf('%s %s | %s', $date, $time, $title);
+            }
         ],
         'global_operations' => [
             'all' => [
@@ -66,7 +78,16 @@ $GLOBALS['TL_DCA']['tl_party'] = [
 
     // Palettes
     'palettes' => [
-        'default'                     => '{title_legend},title,description;{date_legend},date,location;{invitation_legend},inviteOnly,invitedUsers;{publish_legend},published'
+        'default'                     => '  {title_legend},title,addedBy,description,cost,currency;
+                                            {date_legend},startDate,startTime,endDate,location;
+                                            {invitation_legend},inviteOnly;
+                                            {publish_legend},published',
+        '__selector__'               => ['inviteOnly'],
+    ],
+
+    // Subpalettes
+    'subpalettes' => [
+        'inviteOnly'                 => 'invitedUsers',
     ],
 
     // Fields
@@ -83,8 +104,26 @@ $GLOBALS['TL_DCA']['tl_party'] = [
             'search'                  => true,
             'filter'                  => true,
             'sorting'                 => true,
-            'eval'                    => ['mandatory'=>true, 'maxlength'=>255, 'tl_class'=>'w50'],
+            'eval'                    => ['mandatory' => true, 'maxlength' => 255, 'tl_class' => 'w50'],
             'sql'                     => "varchar(255) NOT NULL default ''"
+        ],
+        'addedBy' => [
+            'exclude'                 => true,
+            'inputType'               => 'select',
+            'eval'                    => ['mandatory' => true, 'includeBlankOption' => true, 'chosen' => true, 'tl_class' => 'w50'],
+            'sql'                     => "int(10) unsigned NOT NULL default '0'",
+            'options_callback'        => function () {
+                $options = [];
+                $members = \Contao\Database::getInstance()
+                    ->prepare("SELECT id, firstname, lastname FROM tl_member ORDER BY lastname, firstname")
+                    ->execute();
+
+                while ($members->next()) {
+                    $options[$members->id] = $members->firstname . ' ' . $members->lastname;
+                }
+
+                return $options;
+            },
         ],
         'description' => [
             'inputType'               => 'textarea',
@@ -93,14 +132,45 @@ $GLOBALS['TL_DCA']['tl_party'] = [
             'eval'                    => ['rte'=>'tinyMCE', 'tl_class'=>'clr'],
             'sql'                     => "text NULL"
         ],
-        'date' => [
-            'inputType'               => 'text',
-            'exclude'                 => true,
-            'sorting'                 => true,
-            'filter'                  => true,
-            'flag'                    => 8,
-            'eval'                    => ['rgxp'=>'datim', 'datepicker'=>true, 'tl_class'=>'w50 wizard'],
-            'sql'                     => "varchar(10) NOT NULL default ''"
+        'cost' => [
+            'inputType'  => 'text',
+            'exclude'    => true,
+            'eval'       => [
+                'rgxp'        => 'price',
+                'minval'      => 0,
+                'tl_class'    => 'w50',
+                'maxlength'   => 10,
+                'decodeEntities' => true,
+            ],
+            'sql'        => "decimal(10,2) NOT NULL default '0.00'"
+        ],
+        'currency' => [
+            'inputType'  => 'select',
+            'exclude'    => true,
+            'options'    => ['EUR', 'USD', 'GBP'],
+            'eval'       => ['tl_class' => 'w50'],
+            'sql'        => "varchar(3) NOT NULL default 'EUR'"
+        ],
+        'startDate' => [
+            'inputType'  => 'text',
+            'exclude'    => true,
+            'sorting'    => true,
+            'filter'     => true,
+            'eval'       => ['mandatory' => true, 'rgxp' => 'date', 'datepicker' => true, 'tl_class' => 'w50 wizard'],
+            'sql'        => "varchar(10) NOT NULL default ''"
+        ],
+        'startTime' => [
+            'inputType'  => 'text',
+            'exclude'    => true,
+            'eval'       => ['rgxp' => 'time', 'tl_class' => 'w50'],
+            'sql'        => "varchar(10) NOT NULL default ''"
+        ],
+        'endDate' => [
+            'inputType'  => 'text',
+            'exclude'    => true,
+            'filter'     => true,
+            'eval'       => ['rgxp' => 'date', 'datepicker' => true, 'tl_class' => 'w50 wizard'],
+            'sql'        => "varchar(10) NOT NULL default ''"
         ],
         'location' => [
             'inputType'               => 'text',
@@ -128,10 +198,26 @@ $GLOBALS['TL_DCA']['tl_party'] = [
         'invitedUsers' => [
             'exclude'                 => true,
             'inputType'               => 'checkbox',
-            'foreignKey'              => 'tl_member.firstname',
-            'eval'                    => ['multiple'=>true, 'tl_class'=>'clr'],
+            'eval'                    => ['multiple' => true, 'tl_class' => 'clr'],
             'sql'                     => "blob NULL",
-            'relation'                => ['type'=>'hasMany', 'load'=>'lazy']
-        ]
+            'relation'                => [
+                'type'                => 'hasMany',
+                'load'                => 'lazy',
+                'table'               => 'tl_member',
+                'field'               => 'id'
+            ],
+            'options_callback'        => function () {
+                $options = [];
+                $members = \Contao\Database::getInstance()
+                    ->prepare("SELECT id, firstname, lastname FROM tl_member ORDER BY lastname, firstname")
+                    ->execute();
+
+                while ($members->next()) {
+                    $options[$members->id] = $members->firstname . ' ' . $members->lastname;
+                }
+
+                return $options;
+            },
+        ],
     ]
 ];

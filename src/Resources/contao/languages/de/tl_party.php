@@ -16,8 +16,13 @@ $GLOBALS['TL_LANG']['tl_party']['publish_legend'] = 'Veröffentlichung';
 
 // Fields
 $GLOBALS['TL_LANG']['tl_party']['title'] = ['Titel', 'Geben Sie den Titel der Party ein.'];
+$GLOBALS['TL_LANG']['tl_party']['addedBy'] = ['Hinzugefügt von', 'Wähle aus, wer die Party hinzugefügt hat.'];
 $GLOBALS['TL_LANG']['tl_party']['description'] = ['Beschreibung', 'Geben Sie eine Beschreibung für die Party ein.'];
-$GLOBALS['TL_LANG']['tl_party']['date'] = ['Datum', 'Wählen Sie das Datum und die Uhrzeit der Party aus.'];
+$GLOBALS['TL_LANG']['tl_party']['cost'] = ['Eintritt', 'Geben Sie den Eintrittspreis der Party an.'];
+$GLOBALS['TL_LANG']['tl_party']['currency'] = ['Währung', 'Geben Sie an, in welcher Währung der Eintrittspreis angegeben ist.'];
+$GLOBALS['TL_LANG']['tl_party']['startDate'] = ['Datum', 'Wählen Sie das Datum der Party aus.'];
+$GLOBALS['TL_LANG']['tl_party']['startTime'] = ['Uhrzeit', 'Wählen Sie die Uhrzeit der Party aus.'];
+$GLOBALS['TL_LANG']['tl_party']['endDate'] = ['Enddatum', 'Wählen Sie das Datum aus, an dem die Party endet, wenn es sich um eine mehrtägige Party handelt.'];
 $GLOBALS['TL_LANG']['tl_party']['location'] = ['Ort', 'Geben Sie den Veranstaltungsort der Party ein.'];
 $GLOBALS['TL_LANG']['tl_party']['inviteOnly'] = ['Nur für eingeladene Mitglieder sichtbar', 'Aktivieren Sie diese Option, um die Party nur für eingeladene Mitglieder sichtbar zu machen.'];
 $GLOBALS['TL_LANG']['tl_party']['invitedUsers'] = ['Eingeladene Mitglieder', 'Wählen Sie hier die Mitglieder aus, die zu dieser Party eingeladen werden sollen.'];
