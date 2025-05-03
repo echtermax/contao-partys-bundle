@@ -142,7 +142,7 @@ $GLOBALS['TL_DCA']['tl_party'] = [
                 'maxlength'   => 10,
                 'decodeEntities' => true,
             ],
-            'sql'        => "decimal(10,2) NOT NULL default '0.00'"
+            'sql'        => "decimal(10,2) default NULL"
         ],
         'currency' => [
             'inputType'  => 'select',

@@ -20,10 +20,17 @@ use Contao\Model\Collection;
  *
  * @property integer $id
  * @property integer $tstamp
+ * @property integer $addedBy
  * @property string  $title
  * @property string  $description
- * @property string  $date
+ * @property string  $cost
+ * @property string  $currency
+ * @property string  $startDate
+ * @property string  $startTime
+ * @property string  $endDate
  * @property string  $location
+ * @property string  $inviteOnly
+ * @property string  $invitedUsers
  * @property boolean $published
  */
 class PartyModel extends Model
@@ -114,5 +121,14 @@ class PartyModel extends Model
         }
 
         return static::findBy($arrColumns, null, $arrOptions);
+    }
+
+    public static function create(array $data): PartyModel
+    {
+        $party = new static();
+        $party->setRow($data);
+        $party->save();
+
+        return $party;
     }
 }

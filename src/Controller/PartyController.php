@@ -22,8 +22,11 @@ use Echtermax\PartyBundle\Model\PartyResponseModel;
 use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Csrf\CsrfToken;
+use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use Twig\Environment as TwigEnvironment;
 
 /**
@@ -53,6 +56,48 @@ class PartyController extends AbstractController
     {
         $responseModel = PartyResponseModel::findByPartyAndMember($partyId, $userId);
         return $responseModel?->response;
+    }
+
+    #[Route('/create-party', name: 'create_party', methods: ['POST'])]
+    public function createParty(Request $request, CsrfTokenManagerInterface $csrfTokenManager): JsonResponse
+    {
+        $submittedToken = $request->request->get('_token');
+        if (!Environment::get('isAjaxRequest')) return new JsonResponse(['success' => false, 'message' => 'Invalid request.'], 400);
+        if (!$csrfTokenManager->isTokenValid(new CsrfToken('create_party', $submittedToken))) return new JsonResponse(['success' => false, 'message' => 'Invalid CSRF token.'], 400);
+
+        $title = $request->request->get('title');
+        $description = $request->request->get('description');
+        $cost = $request->request->get('cost');
+        $currency = $request->request->get('currency');
+        $startDate = $request->request->get('startDate');
+        $startTime = $request->request->get('startTime');
+        $endDate = $request->request->get('endDate');
+        $location = $request->request->get('location');
+        $inviteOnly = $request->request->get('inviteOnly');
+        $invitedUsers = $request->request->get('attendees');
+
+        $user = FrontendUser::getInstance();
+        if (!$user->id) return new JsonResponse(['success' => false, 'message' => 'User must be logged in.'], 401);
+
+        if (empty($title) || empty($startDate)) return new JsonResponse(['success' => false, 'message' => 'Missing required fields.'], 400);
+
+        $partyModel = new PartyModel();
+        $partyModel->tstamp = time();
+        $partyModel->addedBy = $user->id;
+        $partyModel->title = $title;
+        $partyModel->description = $description ?: null;
+        $partyModel->cost = $cost ? (float)$cost : null;
+        $partyModel->currency = $currency;
+        $partyModel->startDate = (int)strtotime($startDate);
+        $partyModel->startTime = $startTime ? (int)strtotime($startTime) : 0;
+        $partyModel->endDate = $endDate ? (int)strtotime($endDate) : 0;
+        $partyModel->location = $location ?: '';
+        $partyModel->published = true;
+        $partyModel->inviteOnly = $inviteOnly ? 1 : 0;
+        $partyModel->invitedUsers = $invitedUsers ? explode(',', $invitedUsers) : [];
+        $partyModel->save();
+
+        return new JsonResponse(['success' => true, 'message' => "Party '$title' created successfully."]);
     }
 
     /**

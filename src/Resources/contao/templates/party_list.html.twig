@@ -18,11 +18,18 @@
                             <div class="mb-3">
                                 <p class="mb-1">
                                     <strong>Datum:</strong> {{ party.startDate }}{% if party.endDate %} bis {{ party.endDate }}{% endif %}
-                                    {% if party.startTime %}<strong>Beginn:</strong> {{ party.startTime }} Uhr{% endif %}
                                 </p>
+                                
+                                {% if party.startTime %}
+                                    <p class="mb-1"><strong>Beginn:</strong> {{ party.startTime }} Uhr</p>
+                                {% endif %}
                                 
                                 {% if party.location %}
                                     <p class="mb-1"><strong>Ort:</strong> {{ party.location }}</p>
+                                {% endif %}
+                                
+                                {% if party.cost %}
+                                    <p class="mb-1"><strong>Eintritt:</strong> {{ party.cost }} {{ party.currency }}</p>
                                 {% endif %}
                             </div>
                             
@@ -96,9 +103,100 @@
                     </div>
                 </div>
             {% endfor %}
-            <button type="button" class="btn btn-info rounded-circle position-fixed bottom-0 end-0 m-4 z-3 d-flex justify-content-center align-items-center p-0" style="width:64px; height:64px;" data-bs-toggle="modal" data-bs-target="#filterModal">
-                <i id="filterIcon" class="bi bi-funnel fs-3"></i>
+            
+            <button id="menuBtn" type="button" class="btn btn-info rounded-circle position-fixed bottom-0 end-0 m-4 z-3 d-flex justify-content-center align-items-center p-0" style="width:64px; height:64px;">
+                <i id="filterIcon" class="bi bi-filter fs-3"></i>
             </button>
+            <button type="button" class="btn btn-info rounded-circle position-fixed bottom-0 end-0 m-4 z-2 extra-btn" style="width:64px; height:64px; transition: all 0.3s ease-in-out" data-bs-toggle="modal" data-bs-target="#filterModal">
+                <i class="bi bi-funnel fs-3"></i>
+            </button>
+            <button type="button" class="btn btn-info rounded-circle position-fixed bottom-0 end-0 m-4 z-1 extra-btn" style="width:64px; height:64px; transition: all 0.3s ease-in-out" data-bs-toggle="modal" data-bs-target="#createPartyModal">
+                <i class="bi bi-plus fs-3"></i>
+            </button>
+            
+            <div class="modal fade" id="createPartyModal" tabindex="-1" aria-labelledby="createPartyModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header bg-primary text-white border-0">
+                            <h5 class="modal-title flex-grow-1 text-center fw-bold" id="createPartyModalLabel">
+                                Neue Veranstaltung erstellen
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Schließen"></button>
+                        </div>
+                        <div class="modal-body py-4">
+                            <form id="addPartyForm">
+                                <input type="hidden" name="_token" value="{{ csrfToken }}">
+                                
+                                <div class="mb-3">
+                                    <label for="partyTitle" class="form-label">Titel<span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="partyTitle" name="title">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="partyDescription" class="form-label">Beschreibung</label>
+                                    <textarea class="form-control" id="partyDescription" name="description" rows="3"></textarea>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="partyCost" class="form-label">Eintritt</label>
+                                    <div class="input-group">
+                                        <input type="number" class="form-control" id="partyCost" name="cost" min="0" step="0.01">
+                                        <select class="form-select" id="partyCurrency" name="currency" style="max-width: 120px;">
+                                            <option value="EUR">EUR</option>
+                                            <option value="USD">USD</option>
+                                            <option value="GBP">GBP</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <div class="row g-3 mb-3">
+                                    <div class="col-md-6">
+                                        <label for="partyStartDate" class="form-label">Datum<span class="text-danger">*</span></label>
+                                        <input type="date" class="form-control" id="partyStartDate" name="startDate">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="partyStartTime" class="form-label">Beginn</label>
+                                        <input type="time" class="form-control" id="partyStartTime" name="startTime">
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="partyEndDate" class="form-label">Enddatum</label>
+                                    <input type="date" class="form-control" id="partyEndDate" name="endDate">
+                                    <div class="form-text">Nur ausfüllen, wenn die Veranstaltung über mehrere Tage geht.</div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="partyLocation" class="form-label">Veranstaltungsort</label>
+                                    <input type="text" class="form-control" id="partyLocation" name="location">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <input type="checkbox" class="form-check-input" id="inviteOnly" name="inviteOnly">
+                                    <label class="form-check-label" for="inviteOnly">Nur bestimmte Mitglieder einladen</label>
+                                    <input type="hidden" name="attendees" value="">
+                                </div>
+                            </form>
+                            
+                            <div class="mb-3" id="inviteOnlyMembers" style="display: none;">
+                                <label for="partyAttendees" class="form-label">Teilnehmer</label>
+                                {% for user in users %}
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" value="{{ user.id }}" id="partyAttendee{{ user.id }}" name="attendees[]">
+                                        <label class="form-check-label" for="partyAttendee{{ user.id }}">{{ user.firstname }} {{ user.lastname }}</label>
+                                    </div>
+                                {% endfor %}
+                                <div class="form-text">Wähle alle eingeladenen Benutzer aus.</div>
+                            </div>
+                            
+                            <div class="modal-footer justify-content-between border-0">
+                                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                                <button type="submit" form="addPartyForm" class="btn btn-primary" id="submitParty">Erstellen</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
             
             <div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
                 <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -144,8 +242,63 @@
     document.addEventListener('DOMContentLoaded', function() {
         const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
         const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
-        
         const partyButtons = document.querySelectorAll('.party-action-btn');
+        const modals = document.querySelectorAll('[id^="partyAttendeesModal"]');
+        const menuBtn = document.getElementById('menuBtn');
+        const extraButtons = document.querySelectorAll('.extra-btn');
+        const inviteOnly = document.getElementById('inviteOnly');
+        const inviteOnlyMembers = document.getElementById('inviteOnlyMembers');
+        
+        inviteOnly.addEventListener('change', function() {
+            inviteOnlyMembers.style.display = this.checked ? 'block' : 'none';
+        })
+        
+        menuBtn.addEventListener('click', () => {
+            extraButtons.forEach((btn, index) => {
+                if (btn.style.marginBottom) {
+                    btn.style.removeProperty('margin-bottom');
+                } else {
+                    btn.style.setProperty('margin-bottom', `calc((64px + 0.75rem) * ${index + 1} + 1.5rem)`, 'important');
+                }
+            })
+            menuBtn.children[0].classList.toggle('bi-x');
+            menuBtn.children[0].classList.toggle('bi-filter');
+        });
+        
+        document.getElementById('submitParty').addEventListener('click', function (e) {
+            e.preventDefault();
+            
+            const form = document.getElementById('addPartyForm');
+            const formData = new FormData(form);
+            const inviteOnly = document.getElementById('inviteOnly');
+            
+            if (inviteOnly.checked) {
+                const attendees = Array.from(document.querySelectorAll('input[name="attendees[]"]:checked')).map(cb => cb.value);
+                formData.set('attendees', attendees.join(','));
+            }
+            
+            fetch('{{ path('create_party') }}', {
+                method: 'POST',
+                body: new URLSearchParams(formData),
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error submitting form:', error);
+                alert('Unexpected error occurred.');
+            });
+        });
         
         partyButtons.forEach(button => {
             button.addEventListener('click', function(e) {
@@ -197,8 +350,6 @@
                 });
             });
         });
-        
-        const modals = document.querySelectorAll('[id^="partyAttendeesModal"]');
         
         modals.forEach(modal => {
             modal.addEventListener('show.bs.modal', function() {
