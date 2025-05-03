@@ -50,7 +50,7 @@ class PartyModel extends Model
         ];
 
         if (!isset($arrOptions['order'])) {
-            $arrOptions['order'] = "$t.date ASC";
+            $arrOptions['order'] = "$t.startDate DESC";
         }
 
         $arrColumns[] = "$t.published='1'";
@@ -68,7 +68,7 @@ class PartyModel extends Model
     {
         $t = static::$strTable;
         $arrColumns = ["$t.published='1'"];
-        $parties = static::findBy($arrColumns, null, ['order' => "$t.date ASC"]);
+        $parties = static::findBy($arrColumns, null, ['order' => "$t.startDate DESC"]);
 
         if (null === $parties) {
             return null;
@@ -102,15 +102,15 @@ class PartyModel extends Model
      *
      * @param array $arrOptions
      *
-     * @return \Model\Collection|PartyModel[]|PartyModel|null
+     * @return Collection|Model|PartyModel|null
      */
-    public static function findAllPublished($arrOptions = [])
+    public static function findAllPublished(array $arrOptions = []): Collection|PartyModel|Model|null
     {
         $t = static::$strTable;
         $arrColumns = ["$t.published='1'"];
 
         if (!isset($arrOptions['order'])) {
-            $arrOptions['order'] = "$t.date ASC";
+            $arrOptions['order'] = "$t.startDate DESC";
         }
 
         return static::findBy($arrColumns, null, $arrOptions);

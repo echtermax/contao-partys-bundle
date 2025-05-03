@@ -16,27 +16,18 @@
                             <h5 class="card-title">{{ party.title }}</h5>
                             
                             <div class="mb-3">
-                                {% if party.formattedDate %}
-                                    <p class="mb-1">
-                                        <strong>Datum:</strong> {{ party.formattedDate }}
-                                        {% if party.formattedTime %}
-                                            <br>
-                                            <strong>Uhrzeit:</strong> {{ party.formattedTime }}
-                                        {% endif %}
-                                    </p>
-                                {% endif %}
+                                <p class="mb-1">
+                                    <strong>Datum:</strong> {{ party.startDate }}{% if party.endDate %} bis {{ party.endDate }}{% endif %}
+                                    {% if party.startTime %}<strong>Beginn:</strong> {{ party.startTime }} Uhr{% endif %}
+                                </p>
                                 
                                 {% if party.location %}
-                                    <p class="mb-1">
-                                        <strong>Ort:</strong> {{ party.location }}
-                                    </p>
+                                    <p class="mb-1"><strong>Ort:</strong> {{ party.location }}</p>
                                 {% endif %}
                             </div>
                             
                             {% if party.description %}
-                                <div class="card-text">
-                                    {{ party.description|raw }}
-                                </div>
+                                <div class="card-text">{{ party.description|raw }}</div>
                             {% endif %}
                             
                             {% if party.userResponse is defined and party.userResponse is not empty %}
@@ -73,11 +64,9 @@
                                     </button>
                                 {% endif %}
                                 
-                                {% if party.date > 0 %}
-                                    <a href="{{ path('download_party_ics', { id: party.id }) }}" target="_blank" title="Zu Kalender hinzufügen" class="btn btn-primary flex-fill rounded-0">
-                                        <i class="bi bi-calendar-plus me-2"></i>
-                                    </a>
-                                {% endif %}
+                                <a href="{{ path('download_party_ics', { id: party.id }) }}" target="_blank" title="Zu Kalender hinzufügen" class="btn btn-primary flex-fill rounded-0">
+                                    <i class="bi bi-calendar-plus me-2"></i>
+                                </a>
                             </div>
                         </div>
                     </div>

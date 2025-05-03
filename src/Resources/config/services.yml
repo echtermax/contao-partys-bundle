@@ -8,7 +8,6 @@ services:
         resource: '../../'
         exclude: '../../{Entity,Resources,Tests}'
     
-    Echtermax\PartyBundle\EventListener\DataContainer\PartyCallbackListener:
-        public: true
-        arguments:
-            - '@contao.framework'
+    Echtermax\PartyBundle\Module\PartyListModule:
+        tags:
+            - { name: contao.frontend_module, category: party, type: party_list, template: party_list }

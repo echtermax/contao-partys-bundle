@@ -223,8 +223,23 @@ class PartyController extends AbstractController
      */
     private function generateIcs($party): string
     {
-        $start = (new \DateTime())->setTimestamp((int)$party->date);
-        $end   = (clone $start)->modify('+4 hours');
+        $startDateObj = (new \DateTime())->setTimestamp((int)$party->startDate);
+        $startDate = $startDateObj->format('Ymd');
+        $startTime = $party->startTime ? (new \DateTime())->setTimestamp((int)$party->startTime)->format('His') : null;
+        $endDate = $party->endDate ? (new \DateTime())->setTimestamp((int)$party->endDate)->format('Ymd') : null;
+        $endTime = $party->startTime ? (new \DateTime())->setTimestamp((int)$party->startTime)->modify('+4 hours')->format('His') : null;
+
+        if (!$startTime && !$endDate) {
+            $endDateAllDay = (clone $startDateObj)->modify('+1 day')->format('Ymd');
+            $times = "DTSTART;VALUE=DATE:{$startDate}\n" .
+                "DTEND;VALUE=DATE:{$endDateAllDay}";
+        } elseif ($endDate && $startTime) {
+            $times = "DTSTART:{$startDate}T{$startTime}\n" .
+                "DTEND:{$endDate}T{$endTime}";
+        } elseif (!$endDate && $startTime) {
+            $times = "DTSTART:{$startDate}T{$startTime}\n" .
+                "DTEND:{$startDate}T{$endTime}";
+        }
 
         $user = FrontendUser::getInstance();
         $userName = $user->firstname;
@@ -232,22 +247,21 @@ class PartyController extends AbstractController
 
         $description = $party->description ? $this->escapeIcsText($party->description) : '';
 
+        $dtstamp = $startDateObj->format('Ymd\THis');
+
         return <<<ICS
 BEGIN:VCALENDAR
 VERSION:2.0
 CALSCALE:GREGORIAN
-METHOD:REQUEST
+METHOD:PUBLISH
 PRODID:-//Echtermax//PartyCalendar//DE
 BEGIN:VEVENT
 UID:party-{$party->id}-echtermax
-DTSTAMP:{$start->format('Ymd\THis')}
-DTSTART:{$start->format('Ymd\THis')}
-DTEND:{$end->format('Ymd\THis')}
+DTSTAMP:{$dtstamp}
+{$times}
 SUMMARY:{$this->escapeIcsText($party->title)}
 LOCATION:{$this->escapeIcsText($party->location)}
 DESCRIPTION:{$description}
-ORGANIZER:mailto:{$this->adminEmail}
-ATTENDEE;CN={$this->escapeIcsText($userName)};ROLE=REQ-PARTICIPANT:mailto:{$userEmail}
 END:VEVENT
 END:VCALENDAR
 ICS;

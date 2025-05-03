@@ -1,90 +1,47 @@
 <?php
 
-declare(strict_types=1);
-
-/*
- * This file is part of Contao Party Bundle.
- *
- * (c) Max Pawellek
- *
- * @license LGPL-3.0-or-later
- */
-
 namespace Echtermax\PartyBundle\Module;
 
-use Contao\BackendTemplate;
+use Contao\CoreBundle\Controller\FrontendModule\AbstractFrontendModuleController;
+use Contao\CoreBundle\Twig\FragmentTemplate;
 use Contao\Date;
-use Contao\Module;
-use Contao\System;
+use Contao\FrontendUser;
+use Contao\ModuleModel;
 use Echtermax\PartyBundle\Model\PartyModel;
 use Echtermax\PartyBundle\Model\PartyResponseModel;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 
-class PartyListModule extends Module
+class PartyListModule extends AbstractFrontendModuleController
 {
-    /**
-     * Template
-     * @var string
-     */
-    protected $strTemplate = 'mod_partylist';
 
-    /**
-     * Display a wildcard in the back end
-     *
-     * @return string
-     */
-    public function generate()
+    protected function getResponse(FragmentTemplate $template, ModuleModel $model, Request $request): Response
     {
-        if (System::getContainer()->get('contao.routing.scope_matcher')->isBackendRequest(System::getContainer()->get('request_stack')->getCurrentRequest() ?? Request::create(''))) {
-            $template = new BackendTemplate('be_wildcard');
-            $template->wildcard = '### ' . $GLOBALS['TL_LANG']['FMD']['partylist'][0] . ' ###';
-            $template->title = $this->headline;
-            $template->id = $this->id;
-            $template->link = $this->name;
-            $template->href = 'contao/main.php?do=themes&amp;table=tl_module&amp;act=edit&amp;id=' . $this->id;
+        $user = FrontendUser::getInstance();
+        $userId = $user ? $user->id : 0;
 
-            return $template->parse();
-        }
-
-        return parent::generate();
-    }
-
-    /**
-     * Generate the module
-     */
-    protected function compile(): void
-    {
-        $memberId = 0;
-        $user = \Contao\FrontendUser::getInstance();
-        if ($user && $user->id) {
-            $memberId = (int)$user->id;
-        }
-
-        $parties = PartyModel::findPublishedPartiesForMember($memberId);
+        $parties = PartyModel::findPublishedPartiesForMember($userId);
         $arrParties = [];
-        
+
         if (null !== $parties) {
-            foreach ($parties as $party) {
-                $arrParty = $party->row();
-                
-                if ($arrParty['date']) {
-                    $arrParty['formattedDate'] = Date::parse('d.m.Y', $arrParty['date']);
-                    $arrParty['formattedTime'] = Date::parse('H:i', $arrParty['date']);
-                } else {
-                    $arrParty['formattedDate'] = '?';
-                    $arrParty['formattedTime'] = '?';
-                }
+            foreach ($parties as $partyObj) {
+                $party = $partyObj->row();
 
-                $userResponse = PartyResponseModel::findByPartyAndMember($arrParty['id'], $memberId);
-                if ($userResponse) $arrParty['userResponse'] = $userResponse->row()['response'];
+                $party['startDate'] = Date::parse($GLOBALS['TL_CONFIG']['dateFormat'], $party['startDate']);
+                if ($party['startTime']) $party['startTime'] = Date::parse($GLOBALS['TL_CONFIG']['timeFormat'], $party['startDate']);
+                if ($party['endDate']) $party['endDate'] = Date::parse($GLOBALS['TL_CONFIG']['dateFormat'], $party['endDate']);
 
-                $arrParties[] = $arrParty;
+                $userResponse = PartyResponseModel::findByPartyAndMember($party['id'], $userId);
+                if ($userResponse) $party['userResponse'] = $userResponse->row()['response'];
+
+                $arrParties[] = $party;
             }
         }
-        
-        $twig = System::getContainer()->get('twig');
-        $this->Template->parties = $twig->render('@ContaoParty/party_list.html.twig', [
-            'parties' => $arrParties
-        ]);
+
+        $template->parties = $arrParties;
+
+        $template->moduleId = $model->id;
+        $template->moduleUrl = $this->getPageModel()->getFrontendUrl();
+        return $template->getResponse();
     }
 }
