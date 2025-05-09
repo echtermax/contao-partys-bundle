@@ -272,6 +272,11 @@
             const formData = new FormData(form);
             const inviteOnly = document.getElementById('inviteOnly');
             
+            if (formData.get('startDate') >= formData.get('endDate')) {
+                alert('Das Enddatum muss nach dem Startdatum liegen.');
+                return;
+            }
+            
             if (inviteOnly.checked) {
                 const attendees = Array.from(document.querySelectorAll('input[name="attendees[]"]:checked')).map(cb => cb.value);
                 formData.set('attendees', attendees.join(','));
