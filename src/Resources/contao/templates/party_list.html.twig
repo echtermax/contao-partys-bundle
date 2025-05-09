@@ -268,12 +268,17 @@
         document.getElementById('submitParty').addEventListener('click', function (e) {
             e.preventDefault();
             
+            this.disabled = true;
+            this.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>' + this.innerHTML;
+            
             const form = document.getElementById('addPartyForm');
             const formData = new FormData(form);
             const inviteOnly = document.getElementById('inviteOnly');
             
             if (formData.get('startDate') >= formData.get('endDate')) {
                 alert('Das Enddatum muss nach dem Startdatum liegen.');
+                this.disabled = false;
+                this.innerHTML = this.innerHTML.replace(/<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"><\/span>/, '');
                 return;
             }
             
@@ -297,11 +302,15 @@
                     location.reload();
                 } else {
                     alert('Error: ' + data.message);
+                    this.disabled = false;
+                    this.innerHTML = this.innerHTML.replace(/<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"><\/span>/, '');
                 }
             })
             .catch(error => {
                 console.error('Error submitting form:', error);
                 alert('Unexpected error occurred.');
+                this.disabled = false;
+                this.innerHTML = this.innerHTML.replace(/<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"><\/span>/, '');
             });
         });
         
