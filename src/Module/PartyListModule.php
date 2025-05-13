@@ -50,7 +50,6 @@ class PartyListModule extends AbstractFrontendModuleController
         $template->parties = $arrParties;
         $template->users = MemberModel::findAll();
         $template->feuser = $user;
-        dump($template->feuser);
 
         $csrfToken = $this->csrfTokenManager->getToken('create_party')->getValue();
 
