@@ -1,0 +1,38 @@
+{
+    "theme_color": "#000000",
+    "background_color": "#ffffff",
+    "orientation": "any",
+    "display": "standalone",
+    "dir": "auto",
+    "lang": "de-DE",
+    "name": "Partys",
+    "short_name": "Partys",
+    "start_url": "/",
+    "icons": [
+        {
+            "src": "./icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "./icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ],
+    "screenshots": [
+        {
+            "src": "./icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "form_factor": "wide"
+        },
+        {
+            "src": "./icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "form_factor": "narrow"
+        }
+    ]
+}

@@ -461,4 +461,34 @@
         document.getElementById('applyFilters').addEventListener('click', applyFilters);
         document.getElementById('resetFilters').addEventListener('click', resetFilters);
     });
+    
+    // PWA Code
+    const manifest = document.createElement("link");
+    manifest.rel = "manifest";
+    manifest.href = "{{ asset('bundles/contaoparty/pwa/manifest.json') }}";
+    document.head.appendChild(manifest);
+    
+    const appleIcon = document.createElement("link");
+    appleIcon.rel = "apple-touch-icon";
+    appleIcon.href = "{{ asset('bundles/contaoparty/pwa/icon-512.png') }}";
+    document.head.appendChild(appleIcon);
+    
+    const mobileCapable = document.createElement("meta");
+    mobileCapable.name = "apple-mobile-web-app-capable";
+    mobileCapable.content = "yes";
+    document.head.appendChild(mobileCapable);
+    
+    const statusBarStyle = document.createElement("meta");
+    statusBarStyle.name = "apple-mobile-web-app-status-bar-style";
+    statusBarStyle.content = "default";
+    document.head.appendChild(statusBarStyle);
+    
+    const appTitle = document.createElement("meta");
+    appTitle.name = "apple-mobile-web-app-title";
+    appTitle.content = "Partys";
+    document.head.appendChild(appTitle);
+    
+    if ('serviceWorker' in navigator) {
+         navigator.serviceWorker.register('{{ asset('bundles/contaoparty/pwa/service-worker.js ') }} ');
+    }
 </script>
