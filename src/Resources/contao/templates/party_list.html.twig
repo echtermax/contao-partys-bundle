@@ -113,6 +113,9 @@
             <button type="button" class="btn btn-info rounded-circle position-fixed bottom-0 end-0 m-4 z-1 extra-btn" style="width:64px; height:64px; transition: all 0.3s ease-in-out" data-bs-toggle="modal" data-bs-target="#createPartyModal">
                 <i class="bi bi-plus fs-3"></i>
             </button>
+            <button type="button" class="btn btn-info rounded-circle position-fixed bottom-0 end-0 m-4 z-0 extra-btn" style="width:64px; height:64px; transition: all 0.3s ease-in-out" data-bs-toggle="modal" data-bs-target="#settingsModal">
+                <i class="bi bi-gear fs-3"></i>
+            </button>
             
             <div class="modal fade" id="createPartyModal" tabindex="-1" aria-labelledby="createPartyModalLabel" aria-hidden="true">
                 <div class="modal-dialog modal-dialog-centered">
@@ -161,9 +164,8 @@
                                 </div>
                                 
                                 <div class="mb-3">
-                                    <label for="partyEndDate" class="form-label">Enddatum</label>
+                                    <label for="partyEndDate" class="form-label">Enddatum<span class="text-danger">*</span></label>
                                     <input type="date" class="form-control" id="partyEndDate" name="endDate">
-                                    <div class="form-text">Nur ausfüllen, wenn die Veranstaltung über mehrere Tage geht.</div>
                                 </div>
                                 
                                 <div class="mb-3">
@@ -224,6 +226,28 @@
                         <div class="modal-footer justify-content-between border-0">
                             <button type="button" class="btn btn-outline-secondary" id="resetFilters">Zurücksetzen</button>
                             <button type="button" class="btn btn-info" id="applyFilters" data-bs-dismiss="modal">Anwenden</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal fade" id="settingsModal" tabindex="-1" aria-labelledby="settingsModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header bg-secondary text-white border-0">
+                            <h5 class="modal-title flex-grow-1 text-center fw-bold" id="settingsModalLabel">
+                                Einstellungen
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Schließen"></button>
+                        </div>
+                        <div class="modal-body py-4">
+                            <form>
+                                <h2 class="h5 mb-3">Benachrichtigungen</h2>
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="pushNotification">
+                                    <label class="form-check-label" for="pushNotification">Push-Benachrichtigungen aktivieren</label>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 </div>
@@ -474,7 +498,7 @@
     document.head.appendChild(appleIcon);
     
     const mobileCapable = document.createElement("meta");
-    mobileCapable.name = "apple-mobile-web-app-capable";
+    mobileCapable.name = "apple-web-app-capable";
     mobileCapable.content = "yes";
     document.head.appendChild(mobileCapable);
     
@@ -489,6 +513,90 @@
     document.head.appendChild(appTitle);
     
     if ('serviceWorker' in navigator) {
-         navigator.serviceWorker.register('{{ asset('bundles/contaoparty/pwa/service-worker.js ') }} ');
+        const sw = navigator.serviceWorker.register('{{ asset('bundles/contaoparty/pwa/service-worker.js') }}');
+        let deviceId = localStorage.getItem('deviceId');
+        
+        const pushCheckbox = document.getElementById('pushNotification');
+        if (deviceId) pushCheckbox.checked = true;
+        
+        pushCheckbox.addEventListener('change', async function () {
+            if (this.checked) {
+                const permission = await Notification.requestPermission();
+                if (permission !== 'granted') {
+                    alert('Benachrichtigungen wurden nicht erlaubt.');
+                    this.checked = false;
+                    return;
+                }
+                
+                sw.then(registration => {
+                    registration.pushManager.subscribe({
+                        userVisibleOnly: true,
+                        applicationServerKey: urlBase64ToUint8Array('{{ public_key|raw }}')
+                    }).then(subscription => {
+                        deviceId = crypto.randomUUID();
+                        let payload = subscription.toJSON();
+                        payload['deviceId'] = deviceId;
+                        payload['userAgent'] = navigator.userAgent;
+                        fetch('/push-subscription/save', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(payload)
+                        }).then(response => {
+                            if (!response.ok) throw new Error('Es ist ein Fehler aufgetreten. Versuche es später erneut.');
+                            localStorage.setItem('deviceId', deviceId);
+                            console.log('Subscription saved');
+                        }).catch(error => {
+                            console.error('Error sending subscription:', error);
+                            alert('Es ist ein Fehler aufgetreten.');
+                            this.checked = false;
+                        });
+                        
+                    }).catch(error => {
+                        console.error('Push subscription failed:', error);
+                        alert('Fehler bei der Aktivierung von Push-Benachrichtigungen.');
+                        this.checked = false;
+                    });
+                });
+            } else {
+                sw.then(registration => {
+                    registration.pushManager.getSubscription().then(subscription => {
+                        if (subscription) {
+                            subscription.unsubscribe().then(() => {
+                                fetch('/push-subscription/delete', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify({ deviceId: localStorage.getItem('deviceId') })
+                                }).then(response => {
+                                    if (!response.ok) throw new Error('Fehler beim Löschen der Push-Subscription.');
+                                    localStorage.removeItem('deviceId');
+                                    console.log('Push subscription cancelled');
+                                })
+                            }).catch(error => {
+                                console.error('Error cancelling push subscription:', error);
+                            });
+                        }
+                    });
+                });
+            }
+        });
+    }
+    
+    function urlBase64ToUint8Array(base64String) {
+        const padding = '='.repeat((4 - base64String.length % 4) % 4);
+        const base64 = (base64String + padding)
+        .replace(/-/g, '+')
+        .replace(/_/g, '/');
+        
+        const rawData = window.atob(base64);
+        const outputArray = new Uint8Array(rawData.length);
+        
+        for (let i = 0; i < rawData.length; ++i) {
+            outputArray[i] = rawData.charCodeAt(i);
+        }
+        return outputArray;
     }
 </script>

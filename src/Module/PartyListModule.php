@@ -50,6 +50,7 @@ class PartyListModule extends AbstractFrontendModuleController
         $template->parties = $arrParties;
         $template->users = MemberModel::findAll();
         $template->feuser = $user;
+        $template->public_key = $_ENV['VAPID_PUBLIC_KEY'];
 
         $csrfToken = $this->csrfTokenManager->getToken('create_party')->getValue();
 

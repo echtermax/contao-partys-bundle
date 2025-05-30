@@ -11,3 +11,10 @@ services:
     Echtermax\PartyBundle\Module\PartyListModule:
         tags:
             - { name: contao.frontend_module, category: party, type: party_list, template: party_list }
+            
+    Echtermax\PartyBundle\Service\WebPushService: ~
+    
+    Echtermax\PartyBundle\Controller\PushNotificationController:
+        autowire: true
+        tags:
+            - { name: controller.service_arguments }

@@ -19,10 +19,12 @@ use Contao\Environment;
 use Contao\MemberModel;
 use Echtermax\PartyBundle\Model\PartyModel;
 use Echtermax\PartyBundle\Model\PartyResponseModel;
+use Echtermax\PartyBundle\Model\PushNotificationsModel;
 use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Csrf\CsrfToken;
@@ -97,7 +99,15 @@ class PartyController extends AbstractController
         $partyModel->invitedUsers = $invitedUsers ? explode(',', $invitedUsers) : [];
         $partyModel->save();
 
-        return new JsonResponse(['success' => true, 'message' => "Party '$title' created successfully."]);
+        $pushNotificationsModel = new PushNotificationsModel();
+
+        if ($partyModel->inviteOnly) {
+            $title = "Neue Einladung: {$partyModel->title}";
+            $message = "Du wurdest zu einer neuen Party eingeladen: {$partyModel->title}";
+            $pushNotificationsModel->sendNotificationToUsersByMemberIds((array)$invitedUsers, $title, $message);;
+        }
+
+        return new JsonResponse(['success' => true, 'message' => "Party '$partyModel->title' created successfully."]);
     }
 
     /**

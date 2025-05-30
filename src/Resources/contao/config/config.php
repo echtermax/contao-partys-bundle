@@ -17,3 +17,4 @@ $GLOBALS['BE_MOD']['content']['party'] = [
 // Models
 $GLOBALS['TL_MODELS']['tl_party'] = \Echtermax\PartyBundle\Model\PartyModel::class;
 $GLOBALS['TL_MODELS']['tl_party_response'] = \Echtermax\PartyBundle\Model\PartyResponseModel::class;
+$GLOBALS['TL_MODELS']['tl_push_subscription'] = \Echtermax\PartyBundle\Model\PushNotificationsModel::class;

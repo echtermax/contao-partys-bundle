@@ -1,3 +1,7 @@
 party_controller:
     resource: ../../Controller/PartyController.php
     type: attribute
+    
+push_notification_controller:
+    resource: ../../Controller/PushNotificationController.php
+    type: attribute
