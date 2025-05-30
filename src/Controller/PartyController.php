@@ -105,6 +105,10 @@ class PartyController extends AbstractController
             $title = "Neue Einladung: {$partyModel->title}";
             $message = "Du wurdest zu einer neuen Party eingeladen: {$partyModel->title}";
             $pushNotificationsModel->sendNotificationToUsersByMemberIds((array)$invitedUsers, $title, $message);;
+        } else {
+            $title = "Neue Party: {$partyModel->title}";
+            $message = "Eine neue Party wurde erstellt: {$partyModel->title}";
+            $pushNotificationsModel->sendNotificationToAllUsers($title, $message);
         }
 
         return new JsonResponse(['success' => true, 'message' => "Party '$partyModel->title' created successfully."]);
